@@ -10,7 +10,7 @@ border_color = "White"
 
 ball_color = "purple"
 ball_radius = 40
-ball_speed = 1000 # Px/S
+ball_speed = 2000 # Px/S
 background_color = "#232323"
 
 # Variables
@@ -89,8 +89,11 @@ def map_parser(map):
             pos = (int(p_x),int(p_y))
             ball = Ball(pos, ball_color, ball_radius, 1, ball_speed)
 
-def normalize(vector, length):
-    pass
+def norm(vec, length):
+    v_length = dist(Vector2(0,0),vec)
+    x = (vec.x / v_length * length)
+    y = (vec.y / v_length * length)
+    return(Vector2(x,y))
 
 # Start Pygame
 pygame.init()
@@ -111,7 +114,7 @@ while running:
         x.draw(screen)
         collide, wall_vector = x.is_colliding(ball.pos)
         if collide == True:
-            ball.vector = ball.vector + wall_vector
+            ball.vector = norm(Vector2(ball.vector + wall_vector), 1)
 
     ball.draw(screen, delta)
     pygame.display.flip()
