@@ -1,7 +1,7 @@
 import pygame
 from math import dist, sqrt
 from pygame.math import Vector2
-import time
+from time import sleep, time
 # Settings
 screen_res = (1920, 1080)
 
@@ -10,7 +10,7 @@ border_color = "White"
 
 ball_color = "purple"
 ball_radius = 40
-
+ball_speed = 1000 # Px/S
 background_color = "#232323"
 
 # Variables
@@ -50,14 +50,16 @@ class Wall:
             return(False,0)
 
 class Ball:
-    def __init__(self, pos, color, radius, vector):
+    def __init__(self, pos, color, radius, vector, speed):
         self.pos = pos
         self.color = color
         self.radius = radius
+        self.speed = speed
         self.vector = Vector2(1, 0)
 
-    def draw(self, screen):
-        self.pos += self.vector
+    def draw(self, screen, delta):
+        real_vector = Vector2((self.vector.x * delta * ball_speed), (self.vector.y * delta * ball_speed))
+        self.pos += real_vector
         pygame.draw.circle(screen,self.color,self.pos,self.radius)
 
 # Functions
@@ -85,7 +87,10 @@ def map_parser(map):
             j = i[1].split(",")
             p_x, p_y = j[0].split(":")
             pos = (int(p_x),int(p_y))
-            ball = Ball(pos, ball_color, ball_radius, 1)
+            ball = Ball(pos, ball_color, ball_radius, 1, ball_speed)
+
+def normalize(vector, length):
+    pass
 
 # Start Pygame
 pygame.init()
@@ -95,15 +100,20 @@ running = True
 
 # Load Map
 map_parser("square")
-
+old_time = time()
+delta = 0
 while running:
+    delta = time() - old_time
+    old_time = time()
+
     screen.fill(background_color)
     for x in borders:
         x.draw(screen)
         collide, wall_vector = x.is_colliding(ball.pos)
         if collide == True:
             ball.vector = ball.vector + wall_vector
-    ball.draw(screen)
+
+    ball.draw(screen, delta)
     pygame.display.flip()
 
     for event in pygame.event.get():
