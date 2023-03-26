@@ -1,0 +1,34 @@
+{
+    "name":"gate",
+
+    "field":{
+        "pos":[460, 40],
+        "width":960,
+        "height":960,
+        "decal":"background.jpg",
+        "type":"vertical"
+    },
+
+    "player1":{
+        "pos1":[460,1030],
+        "pos2":[1260,1030],
+        "decal":"player1.png"
+    },
+
+    "player2":{
+        "pos1":[460, -30],
+        "pos2":[1260, -30],
+        "decal":"player2.png"
+    },
+
+    "ball":{
+        "decal":"ball.png"
+    },
+
+    "score":{
+        "pos":[230, 540],
+        "font_size":120,
+        "color":"White",
+        "font":"font.ttf"
+    }
+}

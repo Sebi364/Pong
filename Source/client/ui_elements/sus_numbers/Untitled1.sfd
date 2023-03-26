@@ -1,0 +1,109 @@
+SplineFontDB: 3.2
+FontName: Untitled1
+FullName: Untitled1
+FamilyName: Untitled1
+Weight: Regular
+Copyright: Copyright (c) 2023, Sebastian Rychcik
+UComments: "2023-3-26: Created with FontForge (http://fontforge.org)"
+Version: 001.000
+ItalicAngle: 0
+UnderlinePosition: -100
+UnderlineWidth: 50
+Ascent: 800
+Descent: 200
+InvalidEm: 0
+LayerCount: 2
+Layer: 0 0 "Back" 1
+Layer: 1 0 "Fore" 0
+XUID: [1021 878 1234377275 3467237]
+OS2Version: 0
+OS2_WeightWidthSlopeOnly: 0
+OS2_UseTypoMetrics: 1
+CreationTime: 1679829821
+ModificationTime: 1679829983
+OS2TypoAscent: 0
+OS2TypoAOffset: 1
+OS2TypoDescent: 0
+OS2TypoDOffset: 1
+OS2TypoLinegap: 0
+OS2WinAscent: 0
+OS2WinAOffset: 1
+OS2WinDescent: 0
+OS2WinDOffset: 1
+HheadAscent: 0
+HheadAOffset: 1
+HheadDescent: 0
+HheadDOffset: 1
+OS2Vendor: 'PfEd'
+DEI: 91125
+Encoding: ISO8859-1
+UnicodeInterp: none
+NameList: AGL For New Fonts
+DisplaySize: -48
+AntiAlias: 1
+FitToEm: 0
+WinInfo: 0 38 16
+BeginChars: 256 3
+
+StartChar: zero
+Encoding: 48 48 0
+Width: 1000
+LayerCount: 2
+Back
+Image2: image/png 668 0 800 10 10
+M,6r;%14!\!!!!.8Ou6I!!!!N!!!"0"9SW(!8q@_%0-A.0MkGB7K3;c!!!"^QEOn#><t,3D.@Qc
+8PglV,_(3#[V]dYj3ln]U>^fVnCGfCJtW/Ds6u/0XT/>$!H_47;\.5X`V0?4!ZFWu5u^Aac'@+J
+lQ?Ug1&oq&jo+([,s.rbd#62>3O<UAqOn1i!-N-aDN3D6Mo_.cM1cEmS4IGTWk<?"I*)[9>'/Q1
+>3)](Nh652?`kgY71L6F2I]B<n-_VFL+03tnlqAPN`I%CH0`+OM)q=-TY:.D4-?$XGi&.NF%#gi
+T!pEZ4;-Y28+<0-c2%LU>>7<BL%T[!>[iP`4J'm^j2PSKGf'FWbk`=&i>h?PLV+_LZ/Q_H-dIg8
+"8;o_m4ZbI_d9D4[gua7Z+IVS0\;c^qZ2,4rFK%nU*kHbU\o'=NX&=^m@X=b;W"#/8)>L=(rP4/
+lg)O<SP+1`aAH%;s5KQ:o8i_=pLc\P`pISWH_S8^M$)q.q+Fo_->BIZRPtOHZ<(D"SlD4nmn8MB
+h[_]E[GjHG39EpghAa95($bDI&>'TRaiEZs/e=33"W'kW.AaP"N8X=$_1keS\#oK@?TAC1#jAZ=
+k^=XPlL,]PQ'Cgl-9^Go@gOB"nDStY,P*kG*"%$g#q*(*CRc"33cajA;M`#Y3+(ksNr2T.n&+bi
+^\B=/_p.h@pFDgH@ddZpbi]WUA@p9Bci7dDXSj)>>jqMA^\E2sLM8-.=.3CRf`+1qkHpi()Z<)`
+"5`m>l`0pqce;40ouTGs&?m*+ldE\&h1+NG&ZdL$4PhT+gK*EGDQr5jTmLRiCr]8_fWpXdz8OZBB
+Y!QNJ
+EndImage2
+EndChar
+
+StartChar: one
+Encoding: 49 49 1
+Width: 1000
+LayerCount: 2
+Back
+Image2: image/png 620 0 800 10 10
+M,6r;%14!\!!!!.8Ou6I!!!!N!!!"0"9SW(!8q@_%0-A.0MkGB7K<Df!!!"fgY=5rW?XuPcb@0a
+k2/b3`o2Jlp7n+a(`.dLI%d$u`qfX>=^D(-s,Vb,_uKc;!H_47;\.5X`V0?4!U<6E5u^Aa[?Z;\
+_]T@UEC'`'WVHM.h:]e5J4eA#>$BE=?d?YVlgd*l)JA3>#]SM,3CLX.RDPj)F#Zm4#[\hq^V<Zk
+J<M6FBh`lMP#.*MiKb&#O+G'9HYidZj8-X44J\QA6AgNIq-\1ckc+lJ`J':-.Gj^@AI7UPW--'M
+S5Sq7cTEJF;X9N`i.Je,1R>U9`EmIF`7T(o7RqbcGLj>d;'&k*RiRh9OEnjuEuZC2"9%pQc_d'-
+-fI73HKJ<cdC+?#I+GmO3<ae9'A'rF4WR9mnQi=(]A(S]XYG$X=q<TaB2(3X=O)L3QFZLY""kr*
+>f(m0^#KD_.m;0J_f]8G>Y96CR"$H,>YBOJH)>AVQVB4/qqP#C7]jiUI`mT5]#;pBhJlNpQb$Pq
+OTWXbThjHBN>neO(VKL4^Fjq[UZ7<T7kY[_EP[$u+1Tq)Y%$?\<F0Xq6Z&?smS:'OEnIAh/oW8U
+75(1=L.>"=7ToH$5MRX+@CmjtN>lC7b@dt9O5eX\<A+7mEjiOEC$2KH^>g_GRVm3/0&;]N]*E=L
+qJr#hj_Ei2W3;P>f@g!Tq5?7J+*k73I(mm;Qo<6=^&HrOl.kEo(LlD%_i.^eA'Hf*FJ5$'>\rsA
+36G"iU`aU)z8OZBBY!QNJ
+EndImage2
+EndChar
+
+StartChar: two
+Encoding: 50 50 2
+Width: 1000
+LayerCount: 2
+Back
+Image2: image/png 613 0 800 10 10
+M,6r;%14!\!!!!.8Ou6I!!!!N!!!"0"9SW(!8q@_%0-A.0MkGB7K3;c!<E4hHAF[00@.Sa>s1tt
+"q68kA`59Up$1`%AR;sNZgX3:W$E)Ic-64fs/m*Dci=%G!H_47;\.5X`V0?4!TQa>5u^Aa`Kfhr
+UEBu"#m*sfo`"<&hZ,s#[V*l\B/`'?p`q+<Bg?`%RsDk=FQIaa<_@)=]s>&3I9FN=-\-)>`+s5M
+^/NeEi9ZqGi"geR*:TKnb.YR[[U<(^r7IKLZH5*AT_f?3S?-L$jg"m1_GqC$Vbsi;kK^':d+,f"
+eZ<'%N>H8:jsZBLcU"UoNl;k,bT.<boE,S`6Vgi*U\dVBB<N;3K""B0bknhcqqq^5Ku"E)DqiAE
+o"t4Jfe7V0jqc:7F-c0s1Cl(q^>g`ahrU29&Pp]=G]7&Xj;K"QTO5ps&B9/fAPH+n"./55P31/S
+e`Yk&Z9J:Fi@i5eHBk8glSFmkWb\+pI=:6f%o`C=?8_ESIb&"&dkCN#h^1L9bBqpI?d3ZNX`Emb
+%p\b+<Ll9ZR62GGo=e_Q0@onFe,&(6n9fubH)@#XG)^b14B$uC0\+0g6qdlp[**MrcT0%27E)-$
+U=S]r=J?1F5+@=:`8+Zjd(.R.\51',R,[5%M)O2"'2*8R]CCO=!]T<<*lg\X]B/Jb^;]Kh2uEu1
+A$:=XNuXc:BuE`l^Z#.gHO_:.]'bQLDt,OC`sHGQ90W)Eo/q&`c0;m^T`g$CF[ngu!1d(_9S08+
+WW3#!!(fUS7'8jaJcGcN
+EndImage2
+EndChar
+EndChars
+EndSplineFont

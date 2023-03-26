@@ -184,6 +184,11 @@ class Match:
         else:
             return(False)
 
+    def push_pos(self):
+        self.push(f"game state {self.ball_pos.x} {self.ball_pos.y} {self.player1_pos} {self.player2_pos}", self.player1)
+        self.push(f"game state {1 - self.ball_pos.x} {self.ball_pos.y} {self.player2_pos} {self.player1_pos}", self.player2)
+
+
     def game(self):
         start_time = int(time()) + 12
         self.push(f"game info {start_time} {self.player_width} {self.player_speed} {self.player1_pos} {self.player2_pos}", self.player1)
@@ -192,6 +197,8 @@ class Match:
         while self.running:
             if start_time < time():
                 last_time = time()
+                last_wall = -1
+
                 while self.running:
                     delta = time() - last_time
                     last_time = time()
@@ -200,7 +207,6 @@ class Match:
 
                     self.ball_pos += self.ball_vector.clamp_magnitude(self.ball_speed * delta, self.ball_speed * delta)
 
-                    last_wall = -1
                     if self.ball_pos.x < 0 and last_wall != 1:
                         if self.check_collision(self.player1_pos):
                             self.player2_score += 1
@@ -231,10 +237,15 @@ class Match:
                         self.push(f"game score {self.player2_score} {self.player1_score}", self.player2)
 
                         self.ball_pos = Vector2(0.5,0.5)
-                        self.ball_vector = Vector2(1,2).normalize().rotate(randrange(0,360))
+                        self.ball_vector = Vector2(1,2).normalize().rotate(randrange(0,90) - 90)
 
-                    self.push(f"game state {self.ball_pos.x} {self.ball_pos.y} {self.player1_pos} {self.player2_pos}", self.player1)
-                    self.push(f"game state {1 - self.ball_pos.x} {self.ball_pos.y} {self.player2_pos} {self.player1_pos}", self.player2)
+                        self.push_pos()
+
+                        self.broadcast(f"game pause {time() + 5}")
+                        sleep(5)
+                        last_time = time()
+
+                    self.push_pos()
 
                 break
             sleep(0.1)
@@ -310,7 +321,6 @@ def remove_from_waitlist(player_id):
 
 def rescue_player(match_id, player):
     afk_players[player.player_id] = player
-    
 
 #---------------------------------------#
 
