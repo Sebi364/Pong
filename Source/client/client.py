@@ -124,7 +124,6 @@ def main():
             if pressed[pygame.K_s] or pressed[pygame.K_DOWN]:
                 put(f"game moved {player1.pos_y}")
                 player1.pos_y -= player1.speed * delta
-            
 
 #-------------------------------------------------------------------------------------------------------------#
 

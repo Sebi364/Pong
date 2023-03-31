@@ -69,26 +69,18 @@ class Player:
 
             for i in data:
                 command = i.split(" ")
-                if command[0] == "player" and command[1] == "set":
-                    if command[2] == "color":
-                        self.color = command[3]
-                    
-                    if command[2] == "name":
-                        self.name = command[3]
 
                 if command[0] == "player" and command[1] == "exit":
                     printlog(f"Player {self.player_id} from {self.ip[0]} left the game", "orange")
                     self.exit()
                 
                 if command[0] == "player" and command[1] == "join":
-                    if command[2] == "open":
-                        if self.match_id == 0:
-                            move_to_waitlist(self.player_id)
-                            self.put("player entered waitlist")
+                    if command[2] == "open" and self.match_id == 0:
+                        move_to_waitlist(self.player_id)
+                        self.put("player entered waitlist")
                 
-                if command[0] == "game":
-                    if self.match_id != 0:
-                        self.match.network_handler(command[1:], self.player_id)
+                if command[0] == "game" and self.match_id != 0:
+                    self.match.network_handler(command[1:], self.player_id)
 
     def close_match(self, reason):
         self.match = None
@@ -187,7 +179,6 @@ class Match:
     def push_pos(self):
         self.push(f"game state {self.ball_pos.x} {self.ball_pos.y} {self.player1_pos} {self.player2_pos}", self.player1)
         self.push(f"game state {1 - self.ball_pos.x} {self.ball_pos.y} {self.player2_pos} {self.player1_pos}", self.player2)
-
 
     def game(self):
         start_time = int(time()) + 12

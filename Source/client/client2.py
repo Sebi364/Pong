@@ -7,19 +7,14 @@ import socket
 import threading
 from time import time
 from librarys import interpol
+import json
 
 #----------------------------------------------------------------------------------------------------------#
 
 WINDOW_RESOLUTION = Vector2(1920,1080)
-WINDOW_COLOR = "White"
 
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 6969
-
-BALL_RADIUS = 20
-BALL_COLOR = "Magenta"
-
-BORDER_WIDTH = 80
 
 BUTTON_HEIGHT = 100
 BUTTON_WIDTH = 400
@@ -33,16 +28,13 @@ BUTTON_BORDER_WIDTH_H = 7
 BUTTON_BORDER_RADIUS_H = 20
 BUTTON_ADJUST_TIME_H = 0.1
 
-SWORD_CURSOR = False
-SUS_NUMBERS = False
-
-PADDLE_COLOR = "Black"
-
 MENUE_FONT_SIZE = 40
-SCORE_FONT_SIZE = 40
 COUNTER_FONT_SIZE = 140
 
 DEBUG_DRAWINGS = False
+
+KONAMI_CODE = ["UP", "UP", "DOWN", "DOWN", "LEFT", "RIGHT", "LEFT", "RIGHT", "B", "A", "START"]
+KONAMI_INPUT_TIME = 4
 
 #----------------------------------------------------------------------------------------------------------#
 
@@ -53,56 +45,96 @@ running = True
 game_running = False
 
 theme = "gate"
+theme_loadet = False
 
 click = False
 mouse_button_down = False
+
+konami_enabled = False
+input_history = []
 
 #----------------------------------------------------------------------------------------------------------#
 
 class Ball():
     def __init__(self) -> None:
         self.relative_pos = Vector2(0.5, 0.5)
-        self.decal = pygame.image.load(f"themes/{theme}/ball.png").convert_alpha()
+
+        self.field_offset = Vector2(80, 80)
+        self.field_width = 1720
+        self.field_height = 880
+
+        self.flipped = False
+
+        self.decal = None
+
+        self.last_pos = Vector2(0,0)
+        self.last_time = 0
+
+        self.vector = Vector2(1,0)
 
     def update_pos(self, posX, posY):
         self.relative_pos = Vector2(float(posX), float(posY))
 
     def draw(self, screen):
-        collision_distance = BORDER_WIDTH + BALL_RADIUS
-        absolute_x = (int(float(self.relative_pos.x) * (WINDOW_RESOLUTION.x - collision_distance * 2)) + collision_distance)
-        absolute_y = (int(float(self.relative_pos.y) * (WINDOW_RESOLUTION.y - collision_distance * 2)) + collision_distance)
+        if self.flipped:
+            relative_x, relative_y = self.relative_pos.y, 1 - self.relative_pos.x
+        else:
+            relative_x, relative_y = self.relative_pos.x, self.relative_pos.y
 
-        if DEBUG_DRAWINGS == False:
-            screen.blit(self.decal, (absolute_x - BALL_RADIUS, absolute_y - BALL_RADIUS))
+        pos_X = relative_x * self.field_width + self.field_offset.x
+        pos_Y = relative_y * self.field_height + self.field_offset.y
+
+        if self.last_time + 0.05 < time():
+            self.vector = Vector2(self.last_pos.x - pos_X, self.last_pos.y - pos_Y).rotate(180)
+
+            self.vector.x = self.vector.x * 100
+            self.vector.y = self.vector.y * 100
+
+            self.last_pos = Vector2(pos_X, pos_Y)
+            self.last_time = time()
+
+        if DEBUG_DRAWINGS == False and theme_loadet == True:
+            if konami_enabled:
+                pos = Vector2(pos_X + self.decal.get_width() / 2, pos_Y + self.decal.get_height() / 2)
+
+                pygame.draw.line(screen, "Yellow", pos, pos + self.vector, 5)
+
+            screen.blit(self.decal, (pos_X, pos_Y))
 
         else:
-            pygame.draw.circle(screen, BALL_COLOR, (absolute_x, absolute_y), BALL_RADIUS)
+            pygame.draw.circle(screen, "Black", (pos_X - 40, pos_Y - 40), 40)
+
+#---------------------------------------#
+
+class Radio():
+    def __init__(self):
+        pass
 
 #---------------------------------------#
 
 class Enviroment():
     def __init__(self) -> None:
-        self.background_decal = pygame.image.load(f"themes/{theme}/background.png").convert_alpha()
-        self.border_decal = pygame.image.load(f"themes/{theme}/border.png").convert_alpha()
-        self.counter_font = pygame.font.Font("ui_elements/font.ttf", SCORE_FONT_SIZE)
+        self.decal = None
+        self.counter_size = 0
+        self.counter_font = None
+        self.counter_color = "Black"
+        self.counter_pos = Vector2(WINDOW_RESOLUTION.x / 2, 40)
 
         self.player1_score = 0
         self.player2_score = 0
 
-
     def draw(self, screen):
-        if DEBUG_DRAWINGS == False:
-            screen.blit(self.background_decal, (0, 0))
-            screen.blit(self.border_decal, (0, 0))
+        if DEBUG_DRAWINGS == False and theme_loadet == True:
+            screen.blit(self.decal, (0, 0))
 
-            text = self.counter_font.render(str(f"{self.player1_score} : {self.player2_score}"), True, "White")
+            text = self.counter_font.render(str(f"{self.player1_score} : {self.player2_score}"), True, self.counter_color)
             textRect = text.get_rect()
-            textRect.center = (WINDOW_RESOLUTION.x / 2, BORDER_WIDTH / 2)
+            textRect.center = self.counter_pos
 
             screen.blit(text, textRect)
 
         else:
-            screen.fill(WINDOW_COLOR)
+            screen.fill("White")
 
 #---------------------------------------#
 
@@ -111,21 +143,19 @@ class Counter():
         self.enabled = False
         self.target_time = 0
 
-        if SUS_NUMBERS:
-            self.number_height = 200
-            self.number_width = 90
-            self.padding = 15
+        self.number_height = 200
+        self.number_width = 90
+        self.padding = 15
 
-            self.decals = {
+        self.decals = {
 
-            }
+        }
 
-            for i in range(0, 10):
-                img = pygame.image.load(f"ui_elements/sus_numbers/{i}.gif").convert_alpha()
-                self.decals[f"decal_{i}"] = pygame.transform.scale(img, (self.number_width, self.number_height))
+        for i in range(0, 10):
+            img = pygame.image.load(f"ui_elements/sus_numbers/{i}.gif").convert_alpha()
+            self.decals[f"decal_{i}"] = pygame.transform.scale(img, (self.number_width, self.number_height))
 
-        else:
-            self.font = pygame.font.Font("ui_elements/font.ttf", COUNTER_FONT_SIZE)
+        self.font = pygame.font.Font("ui_elements/font.ttf", COUNTER_FONT_SIZE)
 
     def count(self, target_time):
         self.enabled = True
@@ -139,7 +169,7 @@ class Counter():
             else:
                 time_remaining = round(time_remaining)
 
-                if SUS_NUMBERS:
+                if konami_enabled:
                     digits = str(time_remaining)
 
                     total_width = ((len(digits) * self.number_width) + ((len(digits) - 1) * self.padding))
@@ -162,17 +192,16 @@ class Counter():
 
 class Player():
     def __init__(self, absolute_x) -> None:
-        self.absolute_x = absolute_x
-        self.relative_y = 0.5
-        self.relative_height = 0.2
+        self.pos1 = Vector2(0, 80)
+        self.pos2 = Vector2(0, 776)
 
-        self.movement_range = (WINDOW_RESOLUTION[1] - (BORDER_WIDTH * 2))
+        self.relative_y = 0.5
 
         self.is_moving = False
         self.movement_direction = 1
         self.movement_speed = 0.2
 
-        self.decal = pygame.image.load(f"themes/{theme}/paddle.png").convert_alpha()
+        self.decal = None
 
     def update_pos(self, pos_y):
         self.relative_y = pos_y
@@ -196,15 +225,14 @@ class Player():
         self.is_moving = False
 
     def draw(self, screen):
-        absolute_height = self.relative_height * self.movement_range
-        absolute_y = (BORDER_WIDTH + ((self.movement_range - absolute_height) * self.relative_y))
+        pos = interpol.vec(self.pos1, self.pos2, self.relative_y)
 
-        if DEBUG_DRAWINGS == False:
-            screen.blit(self.decal, (self.absolute_x, absolute_y))
+        if DEBUG_DRAWINGS == False and theme_loadet == True:
+            screen.blit(self.decal, pos)
         
         else:
-            rect = pygame.Rect(self.absolute_x, absolute_y, BORDER_WIDTH, (self.relative_height * self.movement_range))
-            pygame.draw.rect(screen, PADDLE_COLOR, rect)
+            rect = pygame.Rect(pos.x, pos.y, 80, 184)
+            pygame.draw.rect(screen, "Black", rect)
 
 #---------------------------------------#
 
@@ -260,6 +288,9 @@ class NetworkConnection:
             player2.relative_y = 0.5
             ball.update_pos(float(0.5), float(0.5))
             game_running = False
+        
+        if packet[0] == "game" and packet[1] == "pause":
+            counter.count(float(packet[2]))
 
     def main(self):
         while running:
@@ -274,13 +305,14 @@ class NetworkConnection:
 
 class Sword:
     def __init__(self):
-        if SWORD_CURSOR:
+        if konami_enabled:
             pygame.mouse.set_visible(0)
-
+        
         self.decal = pygame.transform.scale(pygame.image.load(f"ui_elements/cursor.png").convert_alpha(), (55, 55))
 
     def draw(self, screen):
-        if SWORD_CURSOR:
+        if konami_enabled:
+            pygame.mouse.set_visible(0)
             screen.blit(self.decal, (pygame.mouse.get_pos()))
 
 #---------------------------------------#
@@ -308,7 +340,7 @@ class Button():
     def draw(self, screen):
         rect = pygame.Rect(self.pos_X - self.hover_adjust, self.pos_Y - self.hover_adjust ,BUTTON_WIDTH + self.hover_adjust * 2 ,BUTTON_HEIGHT + self.hover_adjust * 2)
         
-        color = interpol.color(BUTTON_COLOR, BUTTON_COLOR_H, self.hover_percentage)
+        color = interpol.col(BUTTON_COLOR, BUTTON_COLOR_H, self.hover_percentage)
         width = int(interpol.num(BUTTON_BORDER_WIDTH, BUTTON_BORDER_WIDTH_H, self.hover_percentage))
         radius = int(interpol.num(BUTTON_BORDER_RADIUS, BUTTON_BORDER_RADIUS_H, self.hover_percentage))
 
@@ -394,10 +426,24 @@ def draw(screen):
 
 #---------------------------------------#
 
+def konami_watcher():
+    global input_history
+    global konami_enabled
+
+    if konami_enabled == False:
+        if input_history[-11:] == KONAMI_CODE:
+            konami_enabled = True
+        
+        if len(input_history) > 15:
+            input_history = input_history[-12:]
+
+#---------------------------------------#
+
 def event_handler():
     global running
     global mouse_button_down
     global click
+    global input_history
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -407,20 +453,43 @@ def event_handler():
             quit()
 
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w or event.key == pygame.K_UP:
+            if event.key == pygame.K_w or event.key == pygame.K_UP or event.key == pygame.K_LEFT or event.key == pygame.K_a:
                 if game_running:
                     player1.start_moving(-1)
 
-            if event.key == pygame.K_s or event.key == pygame.K_DOWN:
+            if event.key == pygame.K_s or event.key == pygame.K_DOWN or event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                 if game_running:
                     player1.start_moving(1)
+            
+            if event.key == pygame.K_UP:
+                input_history.append("UP")
+
+            elif event.key == pygame.K_DOWN:
+                input_history.append("DOWN")
+            
+            elif event.key == pygame.K_LEFT:
+                input_history.append("LEFT")
+            
+            elif event.key == pygame.K_RIGHT:
+                input_history.append("RIGHT")
+            
+            elif event.key == pygame.K_a:
+                input_history.append("A")
+            
+            elif event.key == pygame.K_b:
+                input_history.append("B")
+            
+            elif event.key == pygame.K_RETURN:
+                input_history.append("START")
+            
+            konami_watcher()
 
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_w or event.key == pygame.K_UP:
+            if event.key == pygame.K_w or event.key == pygame.K_UP or event.key == pygame.K_LEFT or event.key == pygame.K_a:
                 if game_running:
                     player1.stop_moving()
 
-            if event.key == pygame.K_s or event.key == pygame.K_DOWN:
+            if event.key == pygame.K_s or event.key == pygame.K_DOWN or event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                 if game_running:
                     player1.stop_moving()
         
@@ -452,11 +521,53 @@ def main():
         draw(screen)
         event_handler()
 
+#---------------------------------------#
+
+def theme_loader(theme):
+    global theme_loadet
+
+    try:
+        config_file = open(f"themes/{theme}/config.json","r")
+        settings = json.load(config_file)
+        
+        pygame.display.set_caption("Pong! " + settings["name"])
+
+        ball.decal = pygame.image.load("themes/" + theme + "/" + settings["ball"]["decal"]).convert_alpha()
+        enviroment.decal = pygame.image.load("themes/" + theme + "/" + settings["field"]["decal"]).convert_alpha()
+        player1.decal = pygame.image.load("themes/" + theme + "/" + settings["player1"]["decal"]).convert_alpha()
+        player2.decal = pygame.image.load("themes/" + theme + "/" + settings["player2"]["decal"]).convert_alpha()
+
+        player1.pos1 = Vector2(settings["player1"]["pos1"])
+        player1.pos2 = Vector2(settings["player1"]["pos2"])
+        player2.pos1 = Vector2(settings["player2"]["pos1"])
+        player2.pos2 = Vector2(settings["player2"]["pos2"])
+
+        ball.field_offset = Vector2(settings["field"]["pos"])
+        ball.field_height = float(settings["field"]["height"])
+        ball.field_width = float(settings["field"]["width"])
+
+        enviroment.counter_color = settings["score"]["color"]
+        enviroment.counter_size = settings["score"]["font_size"]
+        enviroment.counter_pos = Vector2(settings["score"]["pos"])
+        enviroment.counter_font = pygame.font.Font(("themes/" + theme + "/" + settings["score"]["font"]), settings["score"]["font_size"])
+
+        if settings["field"]["type"] == "vertical":
+            ball.flipped = True
+        else:
+            ball.flipped = False
+
+        theme_loadet = True
+
+    except Exception as e:
+        print(f"Error while loading config file: {e}")
+        pass
+
 #----------------------------------------------------------------------------------------------------------#
 
 pygame.init()
 screen = pygame.display.set_mode((WINDOW_RESOLUTION.x,WINDOW_RESOLUTION.y))
 menue_font = pygame.font.Font("ui_elements/font.ttf", MENUE_FONT_SIZE)
+pygame.display.set_caption("Pong!")
 
 #----------------------------------------------------------------------------------------------------------#
 
@@ -464,12 +575,14 @@ enviroment = Enviroment()
 ball = Ball()
 network_handler = NetworkConnection()
 player1 = Player(0)
-player2 = Player(WINDOW_RESOLUTION[0] - BORDER_WIDTH)
+player2 = Player(1920 - 80)
 game_menue = Menue()
 cursor = Sword()
 counter = Counter()
 
 #----------------------------------------------------------------------------------------------------------#
+
+theme_loader(theme)
 
 threading._start_new_thread(network_handler.main, ())
 main()
