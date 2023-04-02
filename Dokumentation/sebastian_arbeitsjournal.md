@@ -54,7 +54,9 @@ Ich habe mich dazu entschieden den Server teil meines Programmes neu zu schreibe
 ---
 ## 31.03.2023
 Ich habe heute den neuen Server zum laufen gebracht.
+
 ---
 ## 02.04.2023
 Heute hab ich die Funktion zum Spiel hinzugefügt das er nach einer gewissen Anzahl an Punkten das Spiel beendet. (sehr wichtiges feature) Der Vorteil davon liegt darin, dass eine runde nicht unendlich lange geht.
+
 ---
