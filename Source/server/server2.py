@@ -19,12 +19,12 @@ LOG_TO_CMD = True
 PLAYER_WIDTH = 0.2
 PLAYER_SPEED = 0.2
 
-INTERVAL_LENGTH = 6
+INTERVAL_LENGTH = 3
 MAX_SCORE = 5
 
 GAME_LOOP_SLEEP = 0.015
 
-BALL_SPEED = 0.2
+BALL_SPEED = 0.5
 
 #----------------------------------------------------------------------------------------------------------#
 
@@ -70,9 +70,6 @@ class Player():
             self.state = "waiting"
 
             printlog(f"Player {self.player_id} joined the waiting list.","blue")
-
-        else:
-            print(packet)
 
     def network_handler(self):
         empty_packets = 0
@@ -150,23 +147,43 @@ class Match():
     def disolve(self, player, reason):
         self.state = "finished"
 
-        if player == self.player1.player_id:
-            self.player2.put(f"game ended {reason}")
+        def notify_enemy(self, player, reason):
+            if player == self.player1.player_id:
+                self.player2.put(f"game ended {reason}")
+                self.player2.state = "afk"
+                self.player2.match = None
+                afk_players[self.player2.player_id] = self.player2
+
+            else:
+                self.player1.put(f"game ended {reason}")
+                self.player1.state = "afk"
+                self.player1.match = None
+                afk_players[self.player1.player_id] = self.player1
+
+        if reason == "left":
+            notify_enemy(self, player, reason)
+            printlog(f"Game ended because {player} left the game", "orange")
+
+        elif reason == "disconnected":
+            notify_enemy(self, player, reason)
+            printlog(f"Game ended because {player} got disconnected", "red")
+        
+        elif reason == "finished":
+            if self.player1_score > self.player2_score:
+                self.player1.put("game ended finished lost")
+                self.player2.put("game ended finished won")
+            
+            else:
+                self.player1.put("game ended finished won")
+                self.player2.put("game ended finished lost")
+            
             self.player2.state = "afk"
             self.player2.match = None
             afk_players[self.player2.player_id] = self.player2
 
-        else:
-            self.player1.put(f"game ended {reason}")
             self.player1.state = "afk"
             self.player1.match = None
             afk_players[self.player1.player_id] = self.player1
-
-        if reason == "left":
-            printlog(f"Game ended because {player} left the game", "orange")
-
-        elif reason == "disconnected":
-            printlog(f"Game ended because {player} got disconnected", "red")
 
     def send_state(self):
         self.player1.put(f"game state {self.ball_pos.x} {self.ball_pos.y} {self.player1_pos} {self.player2_pos}")
@@ -235,6 +252,11 @@ class Match():
 
                 self.send_state()
 
+                if self.player1_score >= MAX_SCORE or self.player2_score >= MAX_SCORE:
+                    self.state = "finished"
+                    self.disolve(0, "finished")
+                    break
+
                 self.broadcast(f"game pause {time() + INTERVAL_LENGTH}")
                 last_wall = 0
                 sleep(INTERVAL_LENGTH)
@@ -253,8 +275,7 @@ class Match():
                 self.game()
                 break
             else:
-                sleep(0.1)
-            
+                sleep(0.1)            
 
 #----------------------------------------------------------------------------------------------------------#
 
@@ -286,7 +307,7 @@ def matchmaker():
 
             printlog(f"Started new Match ({free_match_id}) -> {new_match}", "blue")
 
-            waiting_players =  list(waitlist.values())
+            waiting_players =  list(waitlist.keys())
         
         sleep(0.1)
 

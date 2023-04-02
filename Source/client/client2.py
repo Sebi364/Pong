@@ -288,6 +288,13 @@ class NetworkConnection:
             player2.relative_y = 0.5
             ball.update_pos(float(0.5), float(0.5))
             game_running = False
+
+            if packet[2] == "finished":
+                if packet[3] == "won":
+                    print("won")
+
+                if packet[3] == "lost":
+                    print("lost")
         
         if packet[0] == "game" and packet[1] == "pause":
             counter.count(float(packet[2]))
