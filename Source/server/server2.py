@@ -57,7 +57,10 @@ class Player():
             self.destroy("disconnected")
     
     def packet_parser(self, packet):
-        if packet[0] == "exit" and self.state != "dead":
+        if packet[0] == "player" and packet[1] == "time_sync":
+            self.put(f"time_sync {time()}")
+
+        elif packet[0] == "exit" and self.state != "dead":
             self.destroy("left")
 
         elif packet[0] == "game" and self.state == "playing":

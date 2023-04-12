@@ -53,6 +53,8 @@ mouse_button_down = False
 konami_enabled = False
 input_history = []
 
+time_offset = 0
+
 #----------------------------------------------------------------------------------------------------------#
 
 class Ball():
@@ -108,7 +110,7 @@ class Ball():
 
 class Radio():
     def __init__(self):
-        pass
+        ...
 
 #---------------------------------------#
 
@@ -163,7 +165,7 @@ class Counter():
     
     def draw(self, screen):
         if self.enabled:
-            time_remaining = self.target_time - time()
+            time_remaining = self.target_time - time() - time_offset
             if time_remaining < 0:
                 self.enabled = False
             else:
@@ -191,7 +193,7 @@ class Counter():
 #---------------------------------------#
 
 class Player():
-    def __init__(self, absolute_x) -> None:
+    def __init__(self) -> None:
         self.pos1 = Vector2(0, 80)
         self.pos2 = Vector2(0, 776)
 
@@ -242,6 +244,8 @@ class NetworkConnection:
             self.connection = socket.socket()
             self.connection.connect((SERVER_HOST, SERVER_PORT))
 
+            self.packet_sendtime = 0
+
         except:
             print("Failed to connect to server")
             pygame.quit()
@@ -271,11 +275,11 @@ class NetworkConnection:
 
             game_running = True
 
-        if packet[0] == "game" and packet[1] == "state" and len(packet) == 6:
+        elif packet[0] == "game" and packet[1] == "state" and len(packet) == 6:
             ball.update_pos(float(packet[2]), float(packet[3]))
             player2.update_pos(float(packet[5]))
 
-        if packet[0] == "game" and packet[1] == "score" and len(packet) == 4:
+        elif packet[0] == "game" and packet[1] == "score" and len(packet) == 4:
             player1.relative_y = 0.5
             player2.relative_y = 0.5
             ball.update_pos(float(0.5), float(0.5))
@@ -283,7 +287,7 @@ class NetworkConnection:
             enviroment.player1_score = int(packet[2])
             enviroment.player2_score = int(packet[3])
         
-        if packet[0] == "game" and packet[1] == "ended":
+        elif packet[0] == "game" and packet[1] == "ended":
             player1.relative_y = 0.5
             player2.relative_y = 0.5
             ball.update_pos(float(0.5), float(0.5))
@@ -296,8 +300,12 @@ class NetworkConnection:
                 if packet[3] == "lost":
                     print("lost")
         
-        if packet[0] == "game" and packet[1] == "pause":
+        elif packet[0] == "game" and packet[1] == "pause":
             counter.count(float(packet[2]))
+        
+        elif packet[0] == "time_sync" and len(packet) == 2:
+            travel_time = (time() - self.packet_sendtime) / 2
+            time_offset = float(packet[1]) - travel_time
 
     def main(self):
         while running:
@@ -430,6 +438,12 @@ def draw(screen):
     cursor.draw(screen)
     
     pygame.display.update()
+
+#---------------------------------------#
+
+def sync_time():
+    network_handler.packet_sendtime = time()
+    network_handler.put("player time_sync")
 
 #---------------------------------------#
 
@@ -581,11 +595,12 @@ pygame.display.set_caption("Pong!")
 enviroment = Enviroment()
 ball = Ball()
 network_handler = NetworkConnection()
-player1 = Player(0)
-player2 = Player(1920 - 80)
+player1 = Player()
+player2 = Player()
 game_menue = Menue()
 cursor = Sword()
 counter = Counter()
+radio = Radio()
 
 #----------------------------------------------------------------------------------------------------------#
 
