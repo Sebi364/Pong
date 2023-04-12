@@ -26,6 +26,8 @@ GAME_LOOP_SLEEP = 0.015
 
 BALL_SPEED = 0.5
 
+FILTER_POS = True
+
 #----------------------------------------------------------------------------------------------------------#
 
 afk_players = {}
@@ -128,7 +130,7 @@ class Match():
         self.player2 = player2
 
         self.ball_pos = Vector2(0.5, 0.5)
-        self.ball_vector = self.throw_ball(1)
+        self.ball_vector = self.throw_ball()
 
         self.player1_pos = 0.5
         self.player2_pos = 0.5
@@ -144,8 +146,12 @@ class Match():
         self.player1.put(content)
         self.player2.put(content)
 
-    def throw_ball(self, direction):
-        return Vector2(2,1).normalize()
+    def throw_ball(self):
+        throw_range = (list(range(40,71)) + list(range(110, 141)))
+        throw_deg = (choice(throw_range) + choice([0,180]))
+        ball_vec = Vector2(0,1).rotate(throw_deg).normalize()
+
+        return(ball_vec)
 
     def disolve(self, player, reason):
         self.state = "finished"
@@ -208,6 +214,21 @@ class Match():
             else:
                 self.player2_pos = float(packet[1])
 
+    def filter_pos(self, vec):
+        if vec.x > 1:
+            vec.x = 1
+            
+        if vec.y > 1:
+            vec.y = 1
+        
+        if vec.x < 0:
+            vec.x = 0
+            
+        if vec.y < 0:
+            vec.y = 0
+        
+        return vec
+
     def game(self):
         last_time = time()
         last_wall = 0
@@ -229,6 +250,8 @@ class Match():
                 if self.check_collision(self.player1_pos):
                     self.player1_score += 1
                     scored = True
+                else:
+                    self.broadcast("bounce")
 
             elif self.ball_pos.x > 1 and last_wall != 2:
                 self.ball_vector.x = - self.ball_vector.x
@@ -237,21 +260,28 @@ class Match():
                 if self.check_collision(self.player2_pos):
                     self.player2_score += 1
                     scored = True
+                else:
+                    self.broadcast("bounce")
             
             elif self.ball_pos.y < 0 and last_wall != 3:
                 self.ball_vector.y = -self.ball_vector.y
                 last_wall = 3
+                self.broadcast("bounce")
 
             elif self.ball_pos.y > 1 and last_wall != 4:
                 self.ball_vector.y = -self.ball_vector.y
                 last_wall = 4
-            
+                self.broadcast("bounce")
+
+            if FILTER_POS:
+                self.filter_pos(self.ball_pos)
+
             if scored:
                 self.player1.put(f"game score {self.player1_score} {self.player2_score}")
                 self.player2.put(f"game score {self.player2_score} {self.player1_score}")
 
                 self.ball_pos = Vector2(0.5,0.5)
-                self.ball_vector = self.throw_ball(1)
+                self.ball_vector = self.throw_ball()
 
                 self.send_state()
 

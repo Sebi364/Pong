@@ -6,8 +6,10 @@ from pygame.math import Vector2
 import socket
 import threading
 from time import time
-from librarys import interpol
+from librarys import interpol, pos_filter
 import json
+from pygame import mixer
+import platform
 
 #----------------------------------------------------------------------------------------------------------#
 
@@ -30,11 +32,16 @@ BUTTON_ADJUST_TIME_H = 0.1
 
 MENUE_FONT_SIZE = 40
 COUNTER_FONT_SIZE = 140
+WAIT_FONT_SIZE = 65
 
 DEBUG_DRAWINGS = False
 
 KONAMI_CODE = ["UP", "UP", "DOWN", "DOWN", "LEFT", "RIGHT", "LEFT", "RIGHT", "B", "A", "START"]
-KONAMI_INPUT_TIME = 4
+
+MUSIC_FADE_TIME = 3000
+
+INTERPOLATION = True
+POSITION_FILTER = True
 
 #----------------------------------------------------------------------------------------------------------#
 
@@ -59,7 +66,10 @@ time_offset = 0
 
 class Ball():
     def __init__(self) -> None:
-        self.relative_pos = Vector2(0.5, 0.5)
+        self.relative_pos1 = Vector2(0.5, 0.5)
+        self.relative_pos2 = Vector2(0.5, 0.5)
+        self.start_time = time()
+        self.travel_time = 1
 
         self.field_offset = Vector2(80, 80)
         self.field_width = 1720
@@ -75,9 +85,21 @@ class Ball():
         self.vector = Vector2(1,0)
 
     def update_pos(self, posX, posY):
-        self.relative_pos = Vector2(float(posX), float(posY))
-
+        self.relative_pos1 = self.relative_pos2
+        self.relative_pos2 = Vector2(float(posX), float(posY))
+        self.travel_time = time() - self.start_time
+        self.start_time = time()
+    
     def draw(self, screen):
+        if INTERPOLATION:
+            self.relative_pos = interpol.vec(self.relative_pos1, self.relative_pos2, ((time() - self.start_time) / self.travel_time))
+        
+        else:
+            self.relative_pos = self.relative_pos2
+        
+        if POSITION_FILTER:
+            self.relative_pos = pos_filter.pos(self.relative_pos)
+
         if self.flipped:
             relative_x, relative_y = self.relative_pos.y, 1 - self.relative_pos.x
         else:
@@ -110,7 +132,31 @@ class Ball():
 
 class Radio():
     def __init__(self):
-        ...
+        self.sounds = {
+
+        }
+
+        self.playing = False
+    
+    def play_music(self, name):
+        mixer.music.load(self.sounds[name])
+        mixer.music.play(-1, 0, MUSIC_FADE_TIME)
+        self.playing = True
+    
+    def play_sound(self, name):
+        sound = mixer.Sound(self.sounds[name])
+        sound.play()
+        self.playing = True
+
+    def fade_out(self):
+        mixer.music.fadeout(MUSIC_FADE_TIME)
+        self.playing = False
+
+    def load_music(self, name, path):
+        self.sounds[name] = path
+    
+    def load_sound(self, name, path):
+        self.sounds[name] = path
 
 #---------------------------------------#
 
@@ -192,7 +238,7 @@ class Counter():
 
 #---------------------------------------#
 
-class Player():
+class Player1():
     def __init__(self) -> None:
         self.pos1 = Vector2(0, 80)
         self.pos2 = Vector2(0, 776)
@@ -209,7 +255,7 @@ class Player():
         self.relative_y = pos_y
 
     def update(self, delta):
-        if self.is_moving:
+        if self.is_moving and counter.enabled == False:
             self.relative_y += delta * self.movement_direction
             if self.relative_y > 1:
                 self.relative_y = 1
@@ -228,6 +274,48 @@ class Player():
 
     def draw(self, screen):
         pos = interpol.vec(self.pos1, self.pos2, self.relative_y)
+
+        if DEBUG_DRAWINGS == False and theme_loadet == True:
+            screen.blit(self.decal, pos)
+        
+        else:
+            rect = pygame.Rect(pos.x, pos.y, 80, 184)
+            pygame.draw.rect(screen, "Black", rect)
+
+#---------------------------------------#
+
+class Player2():
+    def __init__(self):
+        self.pos1 = Vector2(0, 80)
+        self.pos2 = Vector2(0, 776)
+        self.travel_time = 0.1
+        self.start_time = time()
+
+        self.relative1 = 0.5
+        self.relative2 = 0.5
+
+        self.decal = None
+
+    def update_pos(self, pos):
+        self.relative1 = self.relative2
+        self.relative2 = float(pos)
+        self.travel_time = time() - self.start_time
+        self.start_time = time()
+    
+    def update(self, delta):
+        pass
+    
+    def draw(self, screen):
+        if INTERPOLATION:
+            relative_y = interpol.num(self.relative1, self.relative2, ((time() - self.start_time) / self.travel_time))
+        
+        else:
+            relative_y = self.relative2
+        
+        if POSITION_FILTER:
+            relative_y = pos_filter.num(relative_y)
+
+        pos = interpol.vec(self.pos1, self.pos2, relative_y)
 
         if DEBUG_DRAWINGS == False and theme_loadet == True:
             screen.blit(self.decal, pos)
@@ -262,6 +350,7 @@ class NetworkConnection:
         global game_running
 
         if packet[0] == "game" and packet[1] == "info" and len(packet) == 7:
+            radio.play_music("background")
             player1.relative_height = float(packet[3])
             player2.relative_height = float(packet[3])
 
@@ -280,14 +369,20 @@ class NetworkConnection:
             player2.update_pos(float(packet[5]))
 
         elif packet[0] == "game" and packet[1] == "score" and len(packet) == 4:
+            radio.play_sound("goal")
             player1.relative_y = 0.5
             player2.relative_y = 0.5
             ball.update_pos(float(0.5), float(0.5))
 
             enviroment.player1_score = int(packet[2])
             enviroment.player2_score = int(packet[3])
-        
+
+        elif packet[0] == "bounce":
+            radio.play_sound("bounce")
+            
         elif packet[0] == "game" and packet[1] == "ended":
+            game_menue.waiting = False
+            radio.play_music("start_background")
             player1.relative_y = 0.5
             player2.relative_y = 0.5
             ball.update_pos(float(0.5), float(0.5))
@@ -305,7 +400,8 @@ class NetworkConnection:
         
         elif packet[0] == "time_sync" and len(packet) == 2:
             travel_time = (time() - self.packet_sendtime) / 2
-            time_offset = float(packet[1]) - travel_time
+            time_offset = time() - float(packet[1]) - travel_time
+            print(f"New time offset: {time_offset}")
 
     def main(self):
         while running:
@@ -318,7 +414,7 @@ class NetworkConnection:
 
 #---------------------------------------#
 
-class Sword:
+class Sword():
     def __init__(self):
         if konami_enabled:
             pygame.mouse.set_visible(0)
@@ -352,6 +448,8 @@ class Button():
         self.hover_adjust = 0
         self.hover_percentage = 0
 
+        self.hoversound_played = False
+
     def draw(self, screen):
         rect = pygame.Rect(self.pos_X - self.hover_adjust, self.pos_Y - self.hover_adjust ,BUTTON_WIDTH + self.hover_adjust * 2 ,BUTTON_HEIGHT + self.hover_adjust * 2)
         
@@ -374,6 +472,7 @@ class Button():
         
         if rect.collidepoint(pygame.mouse.get_pos()):
             if click:
+                radio.play_sound("ui_confirm")
                 game_menue.on_pressed(self.id)
                 click = False
             
@@ -384,11 +483,16 @@ class Button():
         
         if self.mouse_hovering:
             if self.hover_adjust < BUTTON_ENLARGE_H:
+                if not self.hoversound_played:
+                    radio.play_sound("ui_hover")
+                    self.hoversound_played = True
+
                 self.hover_adjust += (BUTTON_ENLARGE_H / BUTTON_ADJUST_TIME_H * delta)
                 self.hover_percentage = 1 / BUTTON_ENLARGE_H * self.hover_adjust
         
         else:
             if self.hover_adjust > 0:
+                self.hoversound_played = False
                 self.hover_adjust -= (BUTTON_ENLARGE_H / BUTTON_ADJUST_TIME_H * delta)
                 self.hover_percentage = 1 / BUTTON_ENLARGE_H * self.hover_adjust
 
@@ -397,6 +501,10 @@ class Button():
 class Menue():
     def __init__(self):
         self.background = pygame.image.load(f"ui_elements/background.png").convert_alpha()
+
+        self.waiting = False
+
+        self.font = self.font = pygame.font.Font("ui_elements/font.ttf", WAIT_FONT_SIZE)
         
         self.buttons = [
             Button("Join", 0, 3, "join-button"),
@@ -407,12 +515,20 @@ class Menue():
     def draw(self, screen):
         if game_running == False:
             screen.blit(self.background, (0, 0))
-            for i in self.buttons:
-                i.draw(screen)
+            if self.waiting:
+                text = self.font.render("Loading...", True, "White")
+                textRect = text.get_rect()
+                textRect.center = (WINDOW_RESOLUTION.x / 2, WINDOW_RESOLUTION.y / 2)
+                screen.blit(text, textRect)
+
+            else:
+                for i in self.buttons:
+                    i.draw(screen)
     
     def on_pressed(self, button_name):
         if button_name == "join-button":
             network_handler.put("player join open")
+            self.waiting = True
         
         if button_name == "exit-button":
             network_handler.put("player exit")
@@ -420,7 +536,7 @@ class Menue():
             quit()
 
     def update(self, delta):
-        if game_running == False:
+        if game_running == False and self.waiting == False:
             for i in self.buttons:
                 i.update(delta)
 
@@ -432,8 +548,8 @@ def draw(screen):
     player2.draw(screen)
     ball.draw(screen)
 
-    game_menue.draw(screen)
     counter.draw(screen)
+    game_menue.draw(screen)
 
     cursor.draw(screen)
     
@@ -530,6 +646,7 @@ def event_handler():
 
 def main():
     last_time = time()
+    radio.play_music("start_background")
 
     while running:
         delta = time() - last_time
@@ -544,11 +661,27 @@ def main():
 
 #---------------------------------------#
 
+def sound_loader(theme):
+    try:
+        config_file = open(f"themes/" + theme + "/sounds.json","r")
+        settings = json.load(config_file)
+        radio.load_music("background", "themes/" + theme + "/" + settings["background-music"])
+        radio.load_sound("goal", "themes/" + theme + "/" + settings["goal"])
+        radio.load_sound("bounce", "themes/" + theme + "/" + settings["bounce"])
+        radio.load_music("start_background", "ui_elements/background.mp3")
+        radio.load_sound("ui_confirm", "ui_elements/confirm.mp3")
+        radio.load_sound("ui_hover", "ui_elements/hover.mp3")
+
+    except Exception as e:
+        print(e)
+
+#---------------------------------------#
+
 def theme_loader(theme):
     global theme_loadet
 
     try:
-        config_file = open(f"themes/{theme}/config.json","r")
+        config_file = open(f"themes/{theme}/theme.json","r")
         settings = json.load(config_file)
         
         pygame.display.set_caption("Pong! " + settings["name"])
@@ -590,13 +723,18 @@ screen = pygame.display.set_mode((WINDOW_RESOLUTION.x,WINDOW_RESOLUTION.y))
 menue_font = pygame.font.Font("ui_elements/font.ttf", MENUE_FONT_SIZE)
 pygame.display.set_caption("Pong!")
 
+mixer.init()
+
+if platform.system() != 'Linux':
+    print("Your OS isn't supported, proceed with caution.")
+
 #----------------------------------------------------------------------------------------------------------#
 
 enviroment = Enviroment()
 ball = Ball()
 network_handler = NetworkConnection()
-player1 = Player()
-player2 = Player()
+player1 = Player1()
+player2 = Player2()
 game_menue = Menue()
 cursor = Sword()
 counter = Counter()
@@ -604,7 +742,9 @@ radio = Radio()
 
 #----------------------------------------------------------------------------------------------------------#
 
+sync_time()
 theme_loader(theme)
+sound_loader(theme)
 
 threading._start_new_thread(network_handler.main, ())
 main()
