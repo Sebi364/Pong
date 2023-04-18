@@ -26,7 +26,7 @@ GAME_LOOP_SLEEP = 0.015
 
 BALL_SPEED = 0.5
 
-FILTER_POS = True
+FILTER_POS = False
 
 #----------------------------------------------------------------------------------------------------------#
 
@@ -251,7 +251,7 @@ class Match():
                     self.player1_score += 1
                     scored = True
                 else:
-                    self.broadcast("bounce")
+                    self.broadcast(f"bounce {self.ball_pos.x} {self.ball_pos.y} {self.ball_vector.x} {self.ball_vector.x}")
 
             elif self.ball_pos.x > 1 and last_wall != 2:
                 self.ball_vector.x = - self.ball_vector.x
@@ -261,17 +261,17 @@ class Match():
                     self.player2_score += 1
                     scored = True
                 else:
-                    self.broadcast("bounce")
+                    self.broadcast(f"bounce {self.ball_pos.x} {self.ball_pos.y} {self.ball_vector.x} {self.ball_vector.x}")
             
             elif self.ball_pos.y < 0 and last_wall != 3:
                 self.ball_vector.y = -self.ball_vector.y
                 last_wall = 3
-                self.broadcast("bounce")
+                self.broadcast(f"bounce {self.ball_pos.x} {self.ball_pos.y} {self.ball_vector.x} {self.ball_vector.x}")
 
             elif self.ball_pos.y > 1 and last_wall != 4:
                 self.ball_vector.y = -self.ball_vector.y
                 last_wall = 4
-                self.broadcast("bounce")
+                self.broadcast(f"bounce {self.ball_pos.x} {self.ball_pos.y} {self.ball_vector.x} {self.ball_vector.x}")
 
             if FILTER_POS:
                 self.filter_pos(self.ball_pos)
@@ -300,8 +300,8 @@ class Match():
     def main(self):
         start_time = time() + INTERVAL_LENGTH
 
-        self.player1.put(f"game info {start_time} {PLAYER_WIDTH} {PLAYER_SPEED} {self.player1_pos} {self.player2_pos}")
-        self.player2.put(f"game info {start_time} {PLAYER_WIDTH} {PLAYER_SPEED} {self.player2_pos} {self.player1_pos}")
+        self.player1.put(f"game info {start_time} {PLAYER_WIDTH} {PLAYER_SPEED} {self.player1_pos} {self.player2_pos} {BALL_SPEED}")
+        self.player2.put(f"game info {start_time} {PLAYER_WIDTH} {PLAYER_SPEED} {self.player2_pos} {self.player1_pos} {BALL_SPEED}")
 
         while True:
             if time() > start_time:

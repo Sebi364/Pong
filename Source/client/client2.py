@@ -66,11 +66,16 @@ time_offset = 0
 
 class Ball():
     def __init__(self) -> None:
-        self.relative_pos1 = Vector2(0.5, 0.5)
-        self.relative_pos2 = Vector2(0.5, 0.5)
-        self.start_time = time()
-        self.travel_time = 1
+        # Standard ball Pos
+        self.relative_pos = Vector2(0.5, 0.5)
 
+        # Variabels for interpolation
+        self.speed = 0.2
+        self.vector = Vector2(1,0)
+        self.col_time = time()
+        self.col_pos = Vector2(0.5, 0.5)
+
+        # Field variabels
         self.field_offset = Vector2(80, 80)
         self.field_width = 1720
         self.field_height = 880
@@ -79,54 +84,41 @@ class Ball():
 
         self.decal = None
 
-        self.last_pos = Vector2(0,0)
-        self.last_time = 0
-
-        self.vector = Vector2(1,0)
-
     def update_pos(self, posX, posY):
-        self.relative_pos1 = self.relative_pos2
-        self.relative_pos2 = Vector2(float(posX), float(posY))
-        self.travel_time = time() - self.start_time
-        self.start_time = time()
+        self.relative_pos = Vector2(float(posX), float(posY))
     
-    def draw(self, screen):
+    def get_pos(self):
         if INTERPOLATION:
-            self.relative_pos = interpol.vec(self.relative_pos1, self.relative_pos2, ((time() - self.start_time) / self.travel_time))
+            vector_length = self.speed * (time() - self.col_time)
+            relative_pos = self.col_pos + self.vector.clamp_magnitude(vector_length, vector_length)
         
         else:
-            self.relative_pos = self.relative_pos2
+            relative_pos = self.relative_pos
         
         if POSITION_FILTER:
-            self.relative_pos = pos_filter.pos(self.relative_pos)
+            relative_pos = pos_filter.pos(relative_pos)
 
         if self.flipped:
-            relative_x, relative_y = self.relative_pos.y, 1 - self.relative_pos.x
+            relative_x, relative_y = relative_pos.y, 1 - relative_pos.x
+
         else:
             relative_x, relative_y = self.relative_pos.x, self.relative_pos.y
 
         pos_X = relative_x * self.field_width + self.field_offset.x
         pos_Y = relative_y * self.field_height + self.field_offset.y
 
-        if self.last_time + 0.05 < time():
-            self.vector = Vector2(self.last_pos.x - pos_X, self.last_pos.y - pos_Y).rotate(180)
+        pos = Vector2(pos_X, pos_Y)
+        return(pos)
 
-            self.vector.x = self.vector.x * 100
-            self.vector.y = self.vector.y * 100
+    def draw(self, screen):
 
-            self.last_pos = Vector2(pos_X, pos_Y)
-            self.last_time = time()
+        pos = self.get_pos()
 
         if DEBUG_DRAWINGS == False and theme_loadet == True:
-            if konami_enabled:
-                pos = Vector2(pos_X + self.decal.get_width() / 2, pos_Y + self.decal.get_height() / 2)
-
-                pygame.draw.line(screen, "Yellow", pos, pos + self.vector, 5)
-
-            screen.blit(self.decal, (pos_X, pos_Y))
+            screen.blit(self.decal, pos)
 
         else:
-            pygame.draw.circle(screen, "Black", (pos_X - 40, pos_Y - 40), 40)
+            pygame.draw.circle(screen, "Black", pos, 40)
 
 #---------------------------------------#
 
@@ -349,7 +341,7 @@ class NetworkConnection:
     def packet_parser(self, packet):
         global game_running
 
-        if packet[0] == "game" and packet[1] == "info" and len(packet) == 7:
+        if packet[0] == "game" and packet[1] == "info" and len(packet) == 8:
             radio.play_music("background")
             player1.relative_height = float(packet[3])
             player2.relative_height = float(packet[3])
@@ -359,6 +351,8 @@ class NetworkConnection:
 
             player1.relative_y = float(packet[5])
             player2.relative_y = float(packet[6])
+
+            ball.speed = float(packet[7])
 
             counter.count(float(packet[2]))
 
@@ -377,8 +371,11 @@ class NetworkConnection:
             enviroment.player1_score = int(packet[2])
             enviroment.player2_score = int(packet[3])
 
-        elif packet[0] == "bounce":
+        elif packet[0] == "bounce" and len(packet) == 5:
             radio.play_sound("bounce")
+            ball.col_time = time()
+            ball.col_pos = Vector2(float(packet[1]), float(packet[2]))
+            ball.vector = Vector2(float(packet[3]), float(packet[4]))
             
         elif packet[0] == "game" and packet[1] == "ended":
             game_menue.waiting = False

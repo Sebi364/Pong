@@ -80,3 +80,7 @@ Heute war ich mit einigen kleineren sachen beschäftigt:
 Heute war ich mit der doku beschäftigt, und habe zum client ein feature hinzugefügt, dass es ihm erlaub zwischen zwei positionen vom ball zu interpollieren. Das ist ein sehr einfacher aber guter trick der die bewegungen vom ball viel flüssiger darstellt als sie es sind. Ich habe das programm getestet indem ich auf dem server die update-rate auf 10x pro sekunde beschränkt habe, was nicht für eine flüssige bewegung reicht. Ich bin selber überascht wie gut das funktioniert.
 
 ---
+## 12.04.2023
+Heute hab ich die interpolation verbessert indem ich sie auch beim Spieler eingesetzt habe.
+
+---
