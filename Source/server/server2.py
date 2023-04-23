@@ -7,9 +7,11 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from pygame.math import Vector2
 from random import randrange, choice
+import psutil
 
 #----------------------------------------------------------------------------------------------------------#
 
+ADMIN_PORT = 6970
 SERVER_PORT = 6969
 SERVER_HOST = ''
 
@@ -52,7 +54,7 @@ class Player():
 
     def put(self, content):
         try:
-            self.connection.send(f"{content}\n".encode())
+            self.connection.send(f"{content};".encode())
 
         except:
             self.running = False
@@ -78,25 +80,24 @@ class Player():
 
     def network_handler(self):
         empty_packets = 0
+        data = ""
 
         while self.state != "dead":
             try:
-                data = self.connection.recv(1024).decode()
-                data = data.split("\n")
-
+                packet = str(self.connection.recv(1024).decode())
+            
             except:
                 self.destroy("disconnected")
                 break
-            
-            for i in data:
-                if len(i) != 0:
-                    self.packet_parser(i.split(" "))
-                    empty_packets = 0
 
+            for i in packet:
+                if i != ";":
+                    data += i
+                
                 else:
-                    empty_packets += 1
-                    if empty_packets > 20:
-                        self.destroy("disconnected")
+                    self.packet_parser(data.split(" "))
+                    empty_packets = 0
+                    data = ""
 
     def join_match(self, match):
         self.state = "playing"
@@ -310,6 +311,40 @@ class Match():
             else:
                 sleep(0.1)            
 
+#---------------------------------------#
+
+class Admin_Interface():
+    def __init__(self):
+        self.server_socket = socket.socket()
+        self.server_socket.bind((SERVER_HOST, ADMIN_PORT))
+        printlog(f"Admin Interface started successfully on port {ADMIN_PORT}", "blue")
+
+    def put(self, conn, data):
+        try:
+            conn.send(f"{data}".encode())
+            return 0
+        
+        except Exception as e:
+            return 1
+
+    def Interface(self, conn):
+        connected = True
+        while connected:
+            ram = psutil.virtual_memory()[2]
+            cpu = psutil.cpu_percent(5)
+            stats = f"AFK: {len(afk_players)}\nWaiting: {len(waitlist)}\nMatches: {len(running_games)}\nPlayers: {len(afk_players) + len(waitlist) + len(running_games) * 2}\nCPU: {cpu}%\nRAM: {ram}%\n\n"
+
+            x = self.put(conn, str(stats))
+            if x != 0:
+                connected = False
+                break
+
+    def main(self):
+        while True:
+            self.server_socket.listen(2)
+            conn, ip = self.server_socket.accept()
+            threading._start_new_thread(self.Interface, (conn,))
+
 #----------------------------------------------------------------------------------------------------------#
 
 def matchmaker():
@@ -393,5 +428,7 @@ def server_program():
 
 #----------------------------------------------------------------------------------------------------------#
 
+console = Admin_Interface()
+threading._start_new_thread(console.main,())
 threading._start_new_thread(matchmaker,())
 server_program()

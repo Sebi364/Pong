@@ -84,3 +84,10 @@ Heute war ich mit der doku beschäftigt, und habe zum client ein feature hinzuge
 Heute hab ich die interpolation verbessert indem ich sie auch beim Spieler eingesetzt habe.
 
 ---
+
+## 23.04.2023
+Heute hab ich das Spiel intensiv getestet und einige Bugs behoben. Bei einem Test ist mir aufgefallen das manchmal das Netzwerk Packet unterteilt wird, was zu chaos führt. Deshalb hab ich das Programm so umschrieben, dass er die Netzwerk-Verbindung wie ein "Stream" von daten beachtet. -> https://stackoverflow.com/questions/22221352/preventing-split-packets-over-tcp
+
+zusätzlich hab ich noch ein paar skins hinzugefügt.
+
+---

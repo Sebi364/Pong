@@ -1,0 +1,34 @@
+{
+    "name":"2077",
+
+    "field":{
+        "pos":[66, 126],
+        "width":1722,
+        "height":762,
+        "decal":"pictures/background.png",
+        "type":"vertical"
+    },
+
+    "player1":{
+        "pos1":[66, 964],
+        "pos2":[1496,964],
+        "decal":"pictures/paddle.png"
+    },
+
+    "player2":{
+        "pos1":[66, 74],
+        "pos2":[1496,74],
+        "decal":"pictures/paddle.png"
+    },
+
+    "ball":{
+        "decal":"pictures/ball.png"
+    },
+
+    "score":{
+        "pos":[500, 220],
+        "font_size":80,
+        "color":"#00ff00",
+        "font":"fonts/font.ttf"
+    }
+}

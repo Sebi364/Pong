@@ -1,34 +1,35 @@
 {
-    "name":"Gate",
+    "name":"Minecraft",
 
     "field":{
-        "pos":[80, 80],
-        "width":1720,
-        "height":880,
-        "decal":"background.png",
+        "pos":[480, 360],
+        "width":880,
+        "height":520,
+        "decal":"pictures/background.png",
         "type":"horizontal"
     },
 
     "player1":{
-        "pos1":[0, 80],
-        "pos2":[0, 820],
-        "decal":"paddle.png"
+        "pos1":[360, 360],
+        "pos2":[360, 840],
+        "decal":"pictures/paddle.png"
     },
 
     "player2":{
-        "pos1":[1840, 80],
-        "pos2":[1840, 820],
-        "decal":"paddle.png"
+        "pos1":[1440, 360],
+        "pos2":[1440, 840],
+        "decal":"pictures/paddle.png"
     },
 
     "ball":{
-        "decal":"ball.png"
+        "decal":"pictures/ball.png"
+        
     },
 
     "score":{
-        "pos":[960, 40],
-        "font_size":80,
+        "pos":[960, 180],
+        "font_size":200,
         "color":"Black",
-        "font":"font.ttf"
+        "font":"fonts/font.ttf"
     }
 }

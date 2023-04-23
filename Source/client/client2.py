@@ -15,7 +15,8 @@ import platform
 
 WINDOW_RESOLUTION = Vector2(1920,1080)
 
-SERVER_HOST = "127.0.0.1"
+SERVER_HOST = "sebi364.xyz"
+#SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 6969
 
 BUTTON_HEIGHT = 100
@@ -51,7 +52,7 @@ paddle_active = False
 running = True
 game_running = False
 
-theme = "gate"
+theme = "2077"
 theme_loadet = False
 
 click = False
@@ -99,7 +100,7 @@ class Ball():
             relative_pos = pos_filter.pos(relative_pos)
 
         if self.flipped:
-            relative_x, relative_y = relative_pos.y, 1 - relative_pos.x
+            relative_x, relative_y = self.relative_pos.y, 1 - self.relative_pos.x
 
         else:
             relative_x, relative_y = self.relative_pos.x, self.relative_pos.y
@@ -209,24 +210,10 @@ class Counter():
             else:
                 time_remaining = round(time_remaining)
 
-                if konami_enabled:
-                    digits = str(time_remaining)
-
-                    total_width = ((len(digits) * self.number_width) + ((len(digits) - 1) * self.padding))
-
-                    digit_pos = 0
-
-                    for i in digits:
-                        xpos = (digit_pos * (self.number_width + self.padding)) + ((WINDOW_RESOLUTION.x / 2) - (total_width / 2))
-                        ypos = ((WINDOW_RESOLUTION.y / 2) - (self.number_height / 2))
-                        screen.blit(self.decals[f"decal_{i}"], (xpos, ypos))
-                        digit_pos += 1
-
-                else:
-                    text = self.font.render(str(time_remaining), True, "Black")
-                    textRect = text.get_rect()
-                    textRect.center = (WINDOW_RESOLUTION.x / 2, WINDOW_RESOLUTION.y / 2)
-                    screen.blit(text, textRect)
+                text = self.font.render(str(time_remaining), True, "Black")
+                textRect = text.get_rect()
+                textRect.center = (WINDOW_RESOLUTION.x / 2, WINDOW_RESOLUTION.y / 2)
+                screen.blit(text, textRect)
 
 #---------------------------------------#
 
@@ -332,7 +319,7 @@ class NetworkConnection:
             quit()
 
     def put(self, data):
-        self.connection.send(f"{data}\n".encode())
+        self.connection.send(f"{data};".encode())
 
     def get(self):
         data = self.connection.recv(1024).decode()
@@ -401,13 +388,16 @@ class NetworkConnection:
             print(f"New time offset: {time_offset}")
 
     def main(self):
+        data = ""
         while running:
-            data = self.get()
-            data = data.split("\n")
-            for i in data:
-                i = i.split(" ")
-                if len(i) != 0:
-                    self.packet_parser(i)
+            packet = str(self.get())
+
+            for i in packet:
+                if i != ";":
+                    data += i
+                else:
+                    self.packet_parser(data.split(" "))
+                    data = ""
 
 #---------------------------------------#
 

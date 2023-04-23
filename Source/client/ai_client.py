@@ -2,7 +2,8 @@
 import os
 import socket
 
-SERVER_HOST = "127.0.0.1"
+SERVER_HOST = "sebi364.xyz"
+#SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 6969
 
 try:
@@ -14,7 +15,7 @@ except:
     quit()
 
 def put(data):
-    connection.send(f"{data}\n".encode())
+    connection.send(f"{data};".encode())
 
 def get():
     data = connection.recv(1024).decode()
@@ -24,8 +25,6 @@ put("player join open")
 
 while True:
     packet = get()
-    packet = packet.split("\n")
-    for i in packet:
-        i = i.split(" ")
-        if len(i) == 6:
-            put(f"game moved {i[3]}")
+    packet = packet.replace(";", "").split(" ")
+    if len(packet) == 6:
+        put(f"game moved {packet[3]}")

@@ -1,5 +1,5 @@
 {
-    "bounce":"sounds/bounce.mp3",
-    "goal":"sounds/goal.mp3",
+    "bounce":"sounds/bounce.ogg",
+    "goal":"sounds/goal.ogg",
     "background-music":"sounds/music.mp3"
 }
