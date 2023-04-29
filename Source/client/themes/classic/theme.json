@@ -26,9 +26,9 @@
     },
 
     "score":{
-        "pos":[500, 220],
+        "pos":[960, 100],
         "font_size":80,
-        "color":"#00ff00",
+        "color":"#FFFFFF",
         "font":"fonts/font.ttf"
     }
 }
