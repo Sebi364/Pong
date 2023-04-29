@@ -383,6 +383,7 @@ class NetworkConnection:
             counter.count(float(packet[2]))
         
         elif packet[0] == "time_sync" and len(packet) == 2:
+            global time_offset
             travel_time = (time() - self.packet_sendtime) / 2
             time_offset = time() - float(packet[1]) - travel_time
             print(f"New time offset: {time_offset}")
