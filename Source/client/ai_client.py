@@ -2,8 +2,8 @@
 import os
 import socket
 
-SERVER_HOST = "sebi364.xyz"
-#SERVER_HOST = "127.0.0.1"
+#SERVER_HOST = "sebi364.xyz"
+SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 6969
 
 try:

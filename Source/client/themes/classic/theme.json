@@ -1,0 +1,34 @@
+{
+    "name":"Classic",
+
+    "field":{
+        "pos":[50, 0],
+        "width":1770,
+        "height":1000,
+        "decal":"Pictures/background.png",
+        "type":"horizontal"
+    },
+
+    "player1":{
+        "pos1":[0, 0],
+        "pos2":[0,864],
+        "decal":"Pictures/paddle.png"
+    },
+
+    "player2":{
+        "pos1":[1870, 0],
+        "pos2":[1870,864],
+        "decal":"Pictures/paddle.png"
+    },
+
+    "ball":{
+        "decal":"Pictures/ball.png"
+    },
+
+    "score":{
+        "pos":[500, 220],
+        "font_size":80,
+        "color":"#00ff00",
+        "font":"fonts/font.ttf"
+    }
+}

@@ -10,13 +10,13 @@ from librarys import interpol, pos_filter
 import json
 from pygame import mixer
 import platform
-
+import sys
+from random import choice
 #----------------------------------------------------------------------------------------------------------#
 
 WINDOW_RESOLUTION = Vector2(1920,1080)
 
 SERVER_HOST = "sebi364.xyz"
-#SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 6969
 
 BUTTON_HEIGHT = 100
@@ -52,7 +52,7 @@ paddle_active = False
 running = True
 game_running = False
 
-theme = "2077"
+theme = "gate"
 theme_loadet = False
 
 click = False
@@ -168,7 +168,7 @@ class Enviroment():
         if DEBUG_DRAWINGS == False and theme_loadet == True:
             screen.blit(self.decal, (0, 0))
 
-            text = self.counter_font.render(str(f"{self.player1_score} : {self.player2_score}"), True, self.counter_color)
+            text = self.counter_font.render(str(f"{self.player2_score} : {self.player1_score}"), True, self.counter_color)
             textRect = text.get_rect()
             textRect.center = self.counter_pos
 
@@ -703,8 +703,26 @@ def theme_loader(theme):
         print(f"Error while loading config file: {e}")
         pass
 
+#---------------------------------------#
+
+def parse_arguments(args):
+    global SERVER_HOST, SERVER_PORT, theme
+    for i in range(0, len(args)):
+        if args[i] == "--theme":
+            if args[i + 1] == "random":
+                theme = choice(os.listdir("themes/"))
+            else:
+                theme = args[i + 1]
+        
+        elif args[i] == "--host":
+            SERVER_HOST = args[i + 1]
+        
+        elif args[i] == "--port":
+            SERVER_PORT = int(args[i + 1])
+
 #----------------------------------------------------------------------------------------------------------#
 
+parse_arguments(sys.argv)
 pygame.init()
 screen = pygame.display.set_mode((WINDOW_RESOLUTION.x,WINDOW_RESOLUTION.y))
 menue_font = pygame.font.Font("ui_elements/font.ttf", MENUE_FONT_SIZE)
