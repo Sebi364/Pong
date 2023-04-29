@@ -204,7 +204,7 @@ class Counter():
     
     def draw(self, screen):
         if self.enabled:
-            time_remaining = self.target_time - time() - time_offset
+            time_remaining = self.target_time - time() + time_offset
             if time_remaining < 0:
                 self.enabled = False
             else:
