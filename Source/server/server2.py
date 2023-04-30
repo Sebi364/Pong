@@ -85,11 +85,18 @@ class Player():
         while self.state != "dead":
             try:
                 packet = str(self.connection.recv(1024).decode())
+                if len(packet) == 0:
+                    empty_packets += 1
+                    if empty_packets > 10:
+                        self.destroy("disconnected")
+                        
+                else:
+                    empty_packets = 0
             
             except:
                 self.destroy("disconnected")
                 break
-
+            
             for i in packet:
                 if i != ";":
                     data += i
